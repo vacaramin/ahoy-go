@@ -1,0 +1,55 @@
+<!--
+  ~ Copyright  2022 LSD Information Technology (Pty) Ltd
+  ~
+  ~    Licensed under the Apache License, Version 2.0 (the "License");
+  ~    you may not use this file except in compliance with the License.
+  ~    You may obtain a copy of the License at
+  ~
+  ~        http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~    Unless required by applicable law or agreed to in writing, software
+  ~    distributed under the License is distributed on an "AS IS" BASIS,
+  ~    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~    See the License for the specific language governing permissions and
+  ~    limitations under the License.
+  -->
+
+<form #f="ngForm">
+  <button *ngIf="!applicationMode" pButton pRipple label="New" icon="pi pi-plus" class="p-button-success mr-2 mb-2"
+          routerLink="/application/new" [queryParams]="{releaseVersionId: releaseVersion.id}"
+          (click)="cancel()"></button>
+  <button *ngIf="applicationMode" pButton pRipple label="New" icon="pi pi-plus" class="p-button-success mr-2 mb-2"
+          routerLink="/application/{{selectedApplication.id}}/version/new" [queryParams]="{releaseVersionId: releaseVersion.id, applicationVersionId: currentApplicationVersion.id, copyEnvironmentConfig: upgradeAppOptions.copyEnvironmentConfig}"
+          (click)="cancel()"></button>
+
+  <div class="p-fluid">
+
+    <div class="field" *ngIf="!applicationMode">
+      <p-dropdown id="application" [options]="applications" [(ngModel)]="selectedApplication" placeholder="Application" optionLabel="name" name="application" required
+                  (onChange)="applicationChanged()"
+                  [appApplicationAllowed]="linkedApplications"
+                  appendTo="body">
+      </p-dropdown>
+      <small class="p-error" *ngIf="f.form.controls.application?.hasError('applicationNameNotUnique')">
+        Application already linked
+      </small>
+    </div>
+
+    <div class="field">
+      <p-dropdown id="applicationVersion" [options]="applicationVersions" [(ngModel)]="upgradeAppOptions.applicationVersion" placeholder="Version" optionLabel="version" name="applicationVersion" required
+                  appendTo="body">
+      </p-dropdown>
+    </div>
+
+    <div class="field-checkbox" *ngIf="applicationMode">
+      <p-checkbox id="copyEnvironmentConfig" name="copyEnvironmentConfig" [(ngModel)]="upgradeAppOptions.copyEnvironmentConfig" binary="true"></p-checkbox>
+      <label for="copyEnvironmentConfig">Copy environment config</label>
+    </div>
+
+  </div>
+</form>
+
+<div class="grid pt-3">
+  <button pButton pRipple type="button" icon="pi pi-times" (click)="close(undefined)" label="Cancel" class="p-button-text ml-auto mr-2"></button>
+  <button pButton pRipple type="button" icon="pi pi-check" (click)="close(upgradeAppOptions)" label="Ok" class="p-button-text mr-2" [disabled]="f.invalid"></button>
+</div>

@@ -1,0 +1,77 @@
+<!--
+  ~ Copyright  2022 LSD Information Technology (Pty) Ltd
+  ~
+  ~    Licensed under the Apache License, Version 2.0 (the "License");
+  ~    you may not use this file except in compliance with the License.
+  ~    You may obtain a copy of the License at
+  ~
+  ~        http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~    Unless required by applicable law or agreed to in writing, software
+  ~    distributed under the License is distributed on an "AS IS" BASIS,
+  ~    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~    See the License for the specific language governing permissions and
+  ~    limitations under the License.
+  -->
+
+<div class="grid">
+  <div class="col-12" *ngIf="environment && environmentsForValidation && clusters">
+
+    <div class="card">
+      <div class="card-header">
+        <h5 *ngIf="!sourceEnvironment">{{editMode ? "Edit" : "New"}} environment</h5>
+        <h5 *ngIf="sourceEnvironment">Duplicate environment {{sourceEnvironment.name}}</h5>
+      </div>
+
+      <p-toolbar>
+        <ng-template pTemplate="left">
+          <button pButton pRipple label="Save" icon="pi pi-save" class="p-button-success mr-2 mb-2" (click)="save()" [disabled]="environmentForm.invalid"></button>
+          <button pButton pRipple label="Cancel" icon="pi pi-times" class="p-button-plain mb-2" (click)="cancel()"></button>
+        </ng-template>
+      </p-toolbar>
+
+      <form #environmentForm="ngForm">
+        <div class="p-fluid col-12 md:col-5">
+
+          <div class="field p-float-label">
+            <input pInputText id="environmentKey" [(ngModel)]="environment.key" name="environmentKey" required
+                   pattern="^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$"
+                   maxlength="9"
+                   [disabled]="editMode"
+                   [appEnvironmentKeyUnique]="environmentsForValidation"
+                   [ignoreOwnId]="environment.id">
+            <label for="environmentKey">Key</label>
+            <small class="p-error" *ngIf="environmentForm.form.controls.environmentKey?.hasError('pattern')">
+              Key invalid: should start with and use lower case letters and numbers
+            </small>
+            <small class="p-error" *ngIf="environmentForm.form.controls.environmentKey?.hasError('environmentKeyNotUnique')">
+              Environment already exists
+            </small>
+          </div>
+
+          <div class="field p-float-label">
+            <input pInputText id="environmentName" [(ngModel)]="environment.name" name="environmentName" required
+                   [appEnvironmentNameUnique]="environmentsForValidation"
+                   [ignoreOwnId]="environment.id">
+            <label for="environmentName">Name</label>
+            <small class="p-error" *ngIf="environmentForm.form.controls.environmentName?.hasError('environmentNameNotUnique')">
+              Environment already exists
+            </small>
+          </div>
+
+          <div class="field">
+            <p-dropdown id="cluster" name="cluster" [options]="clusters" [(ngModel)]="cluster"
+                        [disabled]="editMode"
+                        placeholder="Cluster" optionLabel="name" dataKey="id" required ></p-dropdown>
+          </div>
+
+          <div class="field-checkbox" *ngIf="showCopyEnvironmentConfig()">
+            <p-checkbox id="copyEnvironmentConfig" name="copyEnvironmentConfig" [(ngModel)]="copyEnvironmentConfig" binary="true"></p-checkbox>
+            <label for="copyEnvironmentConfig">Copy environment config</label>
+          </div>
+
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

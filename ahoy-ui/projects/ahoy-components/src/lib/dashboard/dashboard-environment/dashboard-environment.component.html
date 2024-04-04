@@ -1,0 +1,58 @@
+<!--
+  ~ Copyright  2022 LSD Information Technology (Pty) Ltd
+  ~
+  ~    Licensed under the Apache License, Version 2.0 (the "License");
+  ~    you may not use this file except in compliance with the License.
+  ~    You may obtain a copy of the License at
+  ~
+  ~        http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~    Unless required by applicable law or agreed to in writing, software
+  ~    distributed under the License is distributed on an "AS IS" BASIS,
+  ~    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~    See the License for the specific language governing permissions and
+  ~    limitations under the License.
+  -->
+
+<div *ngIf="environment">
+
+  <app-task-events-listener (taskEventEmitter)="taskEventOccurred($event)"></app-task-events-listener>
+
+  <div class="card">
+    <div class="card-header">
+      <p-chip styleClass="chip-environment" label="{{environment.name}}"
+              routerLink="/environmentreleases/{{environment.id}}"></p-chip>
+      <span class="fs-normal note-cluster">{{environment.cluster.name}}</span>
+    </div>
+
+    <div class="field" *ngIf="environmentReleases && environmentReleases.length === 0">
+      There are no releases in this environment<span *appUserRole="[Role.admin, Role.releasemanager]">, <a routerLink="/environmentreleases/{{environment.id}}">create or add</a> a release..</span>
+    </div>
+
+    <p-table #dt [value]="environmentReleases" dataKey="id" selectionMode="single"
+             styleClass="p-datatable-releases p-datatable-sm"
+             *ngIf="environmentReleases && environmentReleases.length > 0">
+
+      <ng-template pTemplate="body" let-er>
+        <tr routerLink="/release/{{er.id.environmentId}}/{{er.id.releaseId}}/version/{{er.currentReleaseVersion ? er.currentReleaseVersion.id : er.latestReleaseVersion.id}}">
+          <td><span class="p-column-title">Release</span>
+            {{er.release.name}}
+          </td>
+          <td><span class="p-column-title">State</span>
+            <app-environment-release-deployment-status [environmentRelease]="er"></app-environment-release-deployment-status>
+          </td>
+          <td><span class="p-column-title">Status</span>
+            <app-environment-release-status [environmentRelease]="er"></app-environment-release-status>
+          </td>
+          <td><span class="p-column-title">Applications</span>
+            <app-environment-release-applications-status [environmentRelease]="er"></app-environment-release-applications-status>
+          </td>
+          <td><span class="p-column-title">Version</span>
+            <app-environment-release-versions [environmentRelease]="er"></app-environment-release-versions>
+          </td>
+        </tr>
+      </ng-template>
+
+    </p-table>
+  </div>
+</div>

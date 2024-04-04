@@ -1,0 +1,138 @@
+<!--
+  ~ Copyright  2022 LSD Information Technology (Pty) Ltd
+  ~
+  ~    Licensed under the Apache License, Version 2.0 (the "License");
+  ~    you may not use this file except in compliance with the License.
+  ~    You may obtain a copy of the License at
+  ~
+  ~        http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~    Unless required by applicable law or agreed to in writing, software
+  ~    distributed under the License is distributed on an "AS IS" BASIS,
+  ~    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~    See the License for the specific language governing permissions and
+  ~    limitations under the License.
+  -->
+
+<div class="grid">
+  <div class="col-12" *ngIf="application && applicationVersion && applicationVersion.spec">
+
+    <div class="card">
+      <div class="card-header">
+        <h5 *ngIf="!editMode">New application version for {{application.name}}</h5>
+        <h5 *ngIf="editMode">Configuration of {{application.name}}:{{editingVersion}}</h5>
+      </div>
+
+      <p-toolbar>
+        <ng-template pTemplate="left">
+          <button pButton pRipple label="Save" icon="pi pi-save" class="p-button-success mr-2 mb-2" (click)="save()" [disabled]="applicationVersionForm.invalid"></button>
+          <button pButton pRipple label="Cancel" icon="pi pi-times" class="p-button-plain mb-2" (click)="cancel()"></button>
+        </ng-template>
+      </p-toolbar>
+
+      <form #applicationVersionForm="ngForm">
+        <div class="p-fluid col-12 md:col-5">
+
+          <div class="field p-float-label">
+            <input pInputText id="applicationVersion" [(ngModel)]="applicationVersion.version" name="applicationVersion"
+                   required
+                   [appVersionUnique]="application.applicationVersions"
+                   [ignoreOwnId]="applicationVersion.id">
+            <label for="applicationVersion">Version</label>
+            <small class="p-error" *ngIf="applicationVersionForm.form.controls.applicationVersion?.hasError('versionNotUnique')">
+              Application version already exists
+            </small>
+          </div>
+
+          <app-docker-registries [applicationSpec]="applicationVersion.spec"></app-docker-registries>
+
+        </div>
+
+        <p-divider layout="horizontal">Containers</p-divider>
+
+        <app-multi-tab [content]="containerContent" [defaultItem]="applicationVersion.spec" [items]="applicationVersion.spec.containers" [itemFactory]="containerSpecFactory()"
+                       [itemIcon]="containerIcon()" [deleteDisabled]="containerSpecDeleteDisabled()" [deleteDisabledTooltip]="containerSpecDeleteDisabledTooltip()">
+
+          <ng-template #containerContent let-containerSpec let-containerSpecIndex="index" let-isDefaultItem="isDefaultItem">
+            <app-container-detail [parentForm]="applicationVersionForm" [applicationSpec]="applicationVersion.spec" [containerSpec]="containerSpec" [containerSpecIndex]="containerSpecIndex"
+                                  [defaultContainerSpec]="isDefaultItem" [containerSpecsForValidation]="applicationVersion.spec.containers"></app-container-detail>
+          </ng-template>
+
+        </app-multi-tab>
+
+        <p-divider layout="horizontal">General</p-divider>
+
+        <div class="col-12">
+          <p-accordion multiple="true">
+            <p-accordionTab>
+              <p-header>
+                <div class="formgroup-inline">
+                  <p-inputSwitch name="configFilesEnabled" (click)="$event.stopPropagation();" [(ngModel)]="applicationVersion.spec.configFilesEnabled"></p-inputSwitch>
+                  <span class="ml-2">Configuration Files</span>
+                </div>
+              </p-header>
+
+              <app-application-config-files
+                [parentForm]="applicationVersionForm"
+                [applicationSpec]="applicationVersion.spec"
+                [configFiles]="applicationVersion.spec.configFiles">
+              </app-application-config-files>
+
+            </p-accordionTab>
+
+            <p-accordionTab>
+              <p-header>
+                <div class="formgroup-inline">
+                  <p-inputSwitch name="volumesEnabled" (click)="$event.stopPropagation();" [(ngModel)]="applicationVersion.spec.volumesEnabled"></p-inputSwitch>
+                  <span class="ml-2">Volumes</span>
+                </div>
+              </p-header>
+
+              <app-multi-tab [content]="volumeContent" [items]="applicationVersion.spec.volumes" [itemFactory]="applicationVolumeFactory()">
+
+                <ng-template #volumeContent let-volume let-volumeIndex="index">
+                  <app-application-volume-detail
+                    [parentForm]="applicationVersionForm"
+                    [volume]="volume"
+                    [volumeIndex]="volumeIndex"
+                    [secrets]="applicationVersion.spec.secrets"
+                    [volumesForValidation]="applicationVersion.spec.volumes">
+                  </app-application-volume-detail>
+                </ng-template>
+
+              </app-multi-tab>
+
+            </p-accordionTab>
+
+            <p-accordionTab>
+              <p-header>
+                <div class="formgroup-inline">
+                  <p-inputSwitch name="secretsEnabled" (click)="$event.stopPropagation();" [(ngModel)]="applicationVersion.spec.secretsEnabled"></p-inputSwitch>
+                  <span class="ml-2">Secrets</span>
+                </div>
+              </p-header>
+
+              <app-multi-tab [content]="secretContent" [items]="applicationVersion.spec.secrets" [itemFactory]="applicationSecretFactory()"
+                             [deleteDisabled]="secretInUse()" [deleteDisabledTooltip]="secretInUseTooltip()">
+
+                <ng-template #secretContent let-secret let-secretIndex="index">
+                  <app-application-secrets
+                    [parentForm]="applicationVersionForm"
+                    [secret]="secret"
+                    [secretIndex]="secretIndex"
+                    [secretInUse]="secretInUse()"
+                    [secretsForValidation]="applicationVersion.spec.secrets">
+                  </app-application-secrets>
+                </ng-template>
+
+              </app-multi-tab>
+
+            </p-accordionTab>
+
+          </p-accordion>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</div>

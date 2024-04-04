@@ -1,0 +1,110 @@
+<!--
+  ~ Copyright  2022 LSD Information Technology (Pty) Ltd
+  ~
+  ~    Licensed under the Apache License, Version 2.0 (the "License");
+  ~    you may not use this file except in compliance with the License.
+  ~    You may obtain a copy of the License at
+  ~
+  ~        http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~    Unless required by applicable law or agreed to in writing, software
+  ~    distributed under the License is distributed on an "AS IS" BASIS,
+  ~    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~    See the License for the specific language governing permissions and
+  ~    limitations under the License.
+  -->
+
+<div class="grid">
+  <div class="col-12">
+
+    <p-confirmPopup></p-confirmPopup>
+    <app-task-events-listener (taskEventEmitter)="taskEventOccurred($event)"></app-task-events-listener>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="flex flex-row align-items-baseline">
+          <i class="pi pi-forward mr-2 app-icon"></i>
+          <h5>Releases</h5>
+        </div>
+      </div>
+
+      <p-toolbar>
+        <ng-template pTemplate="left">
+          <button pButton pRipple label="New" icon="pi pi-plus" class="p-button-success mr-2 mb-2" routerLink="/release/new" *appUserRole="[Role.admin, Role.releasemanager, Role.developer]"></button>
+        </ng-template>
+      </p-toolbar>
+
+      <div class="field" *ngIf="releases && (releases.length === 0)">
+        There are no releases<span *appUserRole="[Role.admin, Role.releasemanager, Role.developer]">, create a <a routerLink="/release/new">new</a> release..</span>
+      </div>
+
+      <p-table #dt [value]="releases" dataKey="id" selectionMode="single"
+               styleClass="p-datatable-releases p-datatable-striped p-datatable-sm"
+               [filterDelay]="0" [globalFilterFields]="['name', 'latestReleaseVersion.version']"
+               *ngIf="releases && releases.length > 0">
+        <ng-template pTemplate="caption">
+          <div class="flex flex-column md:flex-row md:justify-content-between table-header">
+            <span class="p-input-icon-left ml-auto">
+              <i class="pi pi-search"></i>
+              <input pInputText type="text" (input)="dt.filterGlobal($event.target.value, 'contains')"/>
+            </span>
+          </div>
+        </ng-template>
+        <ng-template pTemplate="header">
+          <tr>
+            <th pSortableColumn="name">Release
+              <p-sortIcon field="release.name"></p-sortIcon>
+            </th>
+            <th pSortableColumn="latestReleaseVersion.version">Latest version
+              <p-sortIcon field="latestReleaseVersion.version"></p-sortIcon>
+            </th>
+            <th>Environments</th>
+            <th></th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-release>
+          <tr>
+            <td><span class="p-column-title">Release</span>
+              {{release.name}}
+            </td>
+            <td><span class="p-column-title">Latest version</span>
+              <span *ngIf="release.latestReleaseVersion">{{release.latestReleaseVersion.version}}</span>
+              <span *ngIf="!release.latestReleaseVersion">-</span>
+            </td>
+            <td><span class="p-column-title">Environments</span>
+              <span *ngFor="let environmentRelease of release.environmentReleases">
+                <p-chip styleClass="mr-1 mb-1 {{'chip-environment status-' + (environmentRelease.deployed ? 'deployed' : 'undeployed')}}" label="{{environmentRelease.environment.key}}"
+                        routerLink="/release/{{environmentRelease.id.environmentId}}/{{environmentRelease.id.releaseId}}/version/{{release.latestReleaseVersion.id}}">
+                </p-chip>
+              </span>
+            </td>
+            <td>
+              <button pButton pRipple icon="pi pi-folder" class="p-button-rounded p-button-plain mr-2"
+                      (click)="addToEnvironment(release)"
+                      pTooltip="Add to environment"
+                      *appUserRole="[Role.admin, Role.releasemanager]"></button>
+              <button pButton pRipple icon="pi pi-pencil" class="p-button-rounded p-button-plain mr-2"
+                      routerLink="/release/{{release.id}}"
+                      pTooltip="Edit release"
+                      *appUserRole="[Role.admin, Role.releasemanager, Role.developer]"></button>
+              <button pButton pRipple icon="pi pi-copy" class="p-button-rounded p-button-plain mr-2"
+                      routerLink="/release/new" [queryParams]="{sourceReleaseId: release.id}"
+                      pTooltip="Duplicate release to a new release"
+                      *appUserRole="[Role.admin, Role.releasemanager, Role.developer]"></button>
+
+              <span pTooltip="{{release.environmentReleases && release.environmentReleases.length > 0 ? 'In order to delete release, remove release from all environments' : ''}}">
+                <button pButton pRipple icon="pi pi-trash" class="p-button-rounded p-button-warning"
+                        [disabled]="release.environmentReleases && release.environmentReleases.length > 0"
+                        (click)="deleteRelease($event, release)"
+                        pTooltip="Delete release"
+                        *appUserRole="[Role.admin, Role.releasemanager]"></button>
+              </span>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+
+    </div>
+
+  </div>
+</div>

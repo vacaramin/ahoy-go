@@ -1,0 +1,101 @@
+<!--
+  ~ Copyright  2022 LSD Information Technology (Pty) Ltd
+  ~
+  ~    Licensed under the Apache License, Version 2.0 (the "License");
+  ~    you may not use this file except in compliance with the License.
+  ~    You may obtain a copy of the License at
+  ~
+  ~        http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~    Unless required by applicable law or agreed to in writing, software
+  ~    distributed under the License is distributed on an "AS IS" BASIS,
+  ~    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~    See the License for the specific language governing permissions and
+  ~    limitations under the License.
+  -->
+
+<div class="grid">
+  <div class="col-12" *ngIf="dockerSettings">
+
+    <p-toolbar>
+      <ng-template pTemplate="left">
+        <h5>Docker Registries</h5>
+      </ng-template>
+      <ng-template pTemplate="right">
+        <button pButton pRipple label="Save" icon="pi pi-save" class="p-button-success mr-2 mb-2" (click)="save()" [disabled]="settingsForm.invalid"></button>
+      </ng-template>
+    </p-toolbar>
+
+    <form #settingsForm="ngForm">
+
+      <app-multi-tab [content]="dockerRegistryContent" [items]="dockerSettings.dockerRegistries" [itemFactory]="dockerRegistryFactory()"
+                     [deleteDisabled]="registryInUse()" [deleteDisabledTooltip]="registryInUseTooltip()">
+
+        <ng-template #dockerRegistryContent let-dockerRegistry let-i="index">
+          <div class="p-fluid col-12 md:col-5">
+            <div class="field p-float-label">
+              <input pInputText id="dockerRegistryName{{i}}" [(ngModel)]="dockerRegistry.name" name="dockerRegistryName{{i}}" required
+                     [readOnly]="registryInUse()(dockerRegistry)"
+                     [pTooltip]="registryInUse()(dockerRegistry) ? 'Registry in use' : ''"
+                     [appTabItemNameUnique]="dockerSettings.dockerRegistries"
+                     [selectedIndex]="i">
+              <label for="dockerRegistryName{{i}}">Name</label>
+              <small class="p-error" *ngIf="settingsForm.form.controls['dockerRegistryName' + i]?.hasError('tabItemNameNotUnique')">
+                Registry already exists
+              </small>
+            </div>
+            <div class="field p-float-label">
+              <input pInputText id="dockerServerName{{i}}" [(ngModel)]="dockerRegistry.server" name="dockerServerName{{i}}" required>
+              <label for="dockerServerName{{i}}">Server</label>
+            </div>
+
+            <div class="field-checkbox">
+              <p-checkbox name="dockerServerSecure{{i}}" [(ngModel)]="dockerRegistry.secure" id="dockerServerSecure{{i}}" binary="true"></p-checkbox>
+              <label for="dockerServerSecure{{i}}">Secure</label>
+            </div>
+
+            <div *ngIf="dockerRegistry.secure">
+
+              <div class="p-d-inline-flex">
+                <div class="field-radiobutton mr-3">
+                  <p-radioButton name="dockerRegistryCredentialsUsernamePassword{{i}}" value="USERNAME_PASSWORD" [(ngModel)]="dockerRegistry.credentials" id="dockerRegistryCredentialsUsernamePassword{{i}}"></p-radioButton>
+                  <label for="dockerRegistryCredentialsUsernamePassword{{i}}">Username/Password</label>
+                </div>
+                <div class="field-radiobutton">
+                  <p-radioButton name="dockerRegistryCredentialsDockerConfigJson{{i}}" value="DOCKER_CONFIG_JSON" [(ngModel)]="dockerRegistry.credentials" id="dockerRegistryCredentialsDockerConfigJson{{i}}"></p-radioButton>
+                  <label for="dockerRegistryCredentialsDockerConfigJson{{i}}">Docker config JSON</label>
+                </div>
+              </div>
+
+              <div *ngIf="dockerRegistry.credentials === 'USERNAME_PASSWORD'">
+                <div class="field p-float-label">
+                  <input pInputText id="dockerUsername{{i}}" [(ngModel)]="dockerRegistry.username" name="dockerUsername{{i}}" required>
+                  <label for="dockerUsername{{i}}">Username</label>
+                </div>
+                <i class="pi {{hideDockerPassword ? 'pi-eye-slash':'pi-eye'}}" style="cursor: pointer; width: 10px" (click)="hideDockerPassword = !hideDockerPassword"></i>
+                <div class="field p-float-label">
+                  <input pInputText id="dockerPassword{{i}}" [(ngModel)]="dockerRegistry.password" name="dockerPassword{{i}}"
+                         [type]="hideDockerPassword ? 'password' : 'text'"
+                         required>
+                  <label for="dockerPassword{{i}}">Password</label>
+                </div>
+              </div>
+
+              <div *ngIf="dockerRegistry.credentials === 'DOCKER_CONFIG_JSON'">
+                <div class="field p-float-label">
+                  <textarea rows="10" cols="60" class="json-text" pInputTextarea id="dockerConfigJson{{i}}" [(ngModel)]="dockerRegistry.dockerConfigJson" name="dockerConfigJson{{i}}" required></textarea>
+                  <label for="dockerConfigJson{{i}}">JSON</label>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </ng-template>
+
+      </app-multi-tab>
+
+    </form>
+
+  </div>
+</div>

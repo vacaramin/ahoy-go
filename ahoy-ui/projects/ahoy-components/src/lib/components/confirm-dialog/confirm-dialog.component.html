@@ -1,0 +1,47 @@
+<!--
+  ~ Copyright  2022 LSD Information Technology (Pty) Ltd
+  ~
+  ~    Licensed under the Apache License, Version 2.0 (the "License");
+  ~    you may not use this file except in compliance with the License.
+  ~    You may obtain a copy of the License at
+  ~
+  ~        http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~    Unless required by applicable law or agreed to in writing, software
+  ~    distributed under the License is distributed on an "AS IS" BASIS,
+  ~    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~    See the License for the specific language governing permissions and
+  ~    limitations under the License.
+  -->
+
+<div class="grid">
+  <div class="col-12">
+
+    <form #confirmationForm="ngForm">
+      <div class="p-fluid col-12">
+
+        <div *ngIf="!confirmation.requiresInput" class="field">
+          {{confirmation.message}}
+        </div>
+
+        <div *ngIf="confirmation.requiresInput" class="field">
+          <label for="confirmationInput">{{confirmation.message}}</label>
+          <textarea rows="10" cols="30" pInputTextarea id="confirmationInput" name="confirmationInput" [(ngModel)]="confirmation.input" required></textarea>
+        </div>
+
+        <div *ngIf="confirmation.verify" class="field">
+          <input pInputText id="verifyText" [(ngModel)]="confirmation.enteredVerifyText" name="verifyText" required [appVerifyText]="confirmation.verifyText" appAutofocus>
+          <small>enter <b>{{confirmation.verifyText}}</b> to confirm</small>
+        </div>
+
+        <small *ngIf="confirmation.infoText">{{confirmation.infoText}}</small>
+      </div>
+    </form>
+
+  </div>
+</div>
+
+<div class="grid pt-3">
+  <button pButton pRipple type="button" icon="pi pi-times" (click)="close(undefined)" label="Cancel" class="p-button-text ml-auto mr-2"></button>
+  <button pButton pRipple type="button" icon="pi pi-check" (click)="close(confirmation)" label="Confirm" class="p-button-text mr-2" [disabled]="confirmationForm.invalid" autofocus></button>
+</div>
